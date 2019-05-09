@@ -12,14 +12,9 @@ from utils import visualization_utils as vis_util
 
 
 def targeted_object_counting(input_video, detection_graph, category_index, is_color_recognition_enabled, targeted_object, fps, width, height):
-        #initialize .csv
-        with open('object_counting_report.csv', 'w') as f:
-                writer = csv.writer(f)  
-                csv_line = "Object Type, Object Color, Object Movement Direction, Object Speed (km/h)"                 
-                writer.writerows([csv_line.split(',')])
 
         fourcc = cv2.VideoWriter_fourcc(*'X264')
-        output_movie = cv2.VideoWriter('outputv.mp4', fourcc, fps, (width, height))
+        output_movie = cv2.VideoWriter("processed.mp4", fourcc, fps, (width, height))
         # input video
         cap = cv2.VideoCapture(input_video)
 
@@ -98,13 +93,7 @@ def targeted_object_counting(input_video, detection_graph, category_index, is_co
 
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
-                        break
-
-                if(csv_line != "not_available"):
-                        with open('traffic_measurement.csv', 'a') as f:
-                                writer = csv.writer(f)                          
-                                size, direction = csv_line.split(',')                                             
-                                writer.writerows([csv_line.split(',')])         
+                        break      
 
             cap.release()
             cv2.destroyAllWindows()
