@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <title>Kraken</title>
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-content>
+                <v-toolbar dark color="primary">
+                    <v-toolbar-title class="white--text">Kraken</v-toolbar-title>
+
+                    <v-spacer></v-spacer>
+
+
+                    <v-btn icon>
+                        <v-icon>mdi-github-circle</v-icon>
+                    </v-btn>
+
+                    <v-btn icon>
+                        <v-icon>refresh</v-icon>
+                    </v-btn>
+                </v-toolbar>
+                <v-container grid-list-lg>
+                    <v-layout wrap>
+                        <v-flex xs12 sm4>
+                            <v-card>
+                                <!-- <v-img src="https://cdn.vuetifyjs.com/images/cards/desert.jpg" aspect-ratio="2.75"> -->
+                                </v-img>
+
+                                <v-card-title primary-title>
+                                    <div>
+                                        <h3 class="headline mb-0">Quantidade Total</h3>
+                                        <div> {{ quantity }} </div>
+                                    </div>
+                                </v-card-title>
+
+                            </v-card>
+                        </v-flex>
+                        <v-flex xs12 sm4>
+                            <v-card>
+                                <!-- <v-img src="assets/fish.jpg"> -->
+                                </v-img>
+
+                                <v-card-title primary-title>
+                                    <div>
+                                        <h3 class="headline mb-0">Tamanho médio</h3>
+                                        <div> {{ size }} </div>
+                                    </div>
+                                </v-card-title>
+
+                            </v-card>
+                        </v-flex>
+                        <v-flex xs12 sm4>
+                            <v-card>
+                                <!-- <v-img src="https://cdn.vuetifyjs.com/images/cards/desert.jpg" aspect-ratio="2.75"> -->
+                                </v-img>
+
+                                <v-card-title primary-title>
+                                    <div>
+                                        <h3 class="headline mb-0">Acurácia média</h3>
+                                        <div> {{ accuracy }} </div>
+                                    </div>
+                                </v-card-title>
+
+                            </v-card>
+                        </v-flex>
+                        <v-flex xs12>
+                            <v-card>
+                                <v-card-title primary-title>
+                                    <h3 class="headline mb-0">Distribuição de peixes por tamanho</h3>
+                                </v-card-title>
+                                <div id="chart">
+                                    <apexchart type=bar height=350 :options="chartOptions" :series="series" />
+                                </div>
+                            </v-card>
+                        </v-flex>
+
+                    </v-layout>
+                </v-container>
+            </v-content>
+        </v-app>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-apexcharts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
+
+    <script>
+
+        new Vue({
+            el: '#app',
+            components: {
+                apexchart: VueApexCharts,
+            },
+            data: {
+                quantity: 100,
+                accuracy: 100,
+                size: 100,
+                series: [{
+                    name: 'Quantidade',
+                    data: [20, 40, 35]
+                },{
+                    name: 'Acurácia',
+                    data: [78, 79, 99]
+                },],
+                chartOptions: {
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%',
+                            endingShape: 'rounded'
+                        },
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        colors: ['transparent']
+                    },
+
+                    xaxis: {
+                        categories: ['Pequenos', 'Médios', 'Grandes'],
+                    },
+                    yaxis: [{
+                        title: {
+                            text: 'Quantidade'
+                        }
+                    }, {
+                        opposite: true,
+                        title: {
+                            text: 'Acurácia (%)'
+                        }
+                    }],
+                    fill: {
+                        opacity: 1
+
+                    },
+                    tooltip: {
+                        y: [{
+                            formatter: function (val) {
+                                return val + " peixes"
+                            }
+                        },{
+                            formatter: function (val) {
+                                return val + "%"
+                            }
+                        }]
+                    }
+                }
+            }
+        })
+
+
+    </script>
+</body>
+
+</html>
