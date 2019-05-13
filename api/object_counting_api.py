@@ -16,12 +16,6 @@ size_ratio = 100.0
 
 def targeted_object_counting(input_video, detection_graph, category_index, is_color_recognition_enabled, targeted_object, fps, width, height):
 
-    #initialize .csv
-    with open('report.csv', 'w') as f:
-        writer = csv.writer(f)
-        csv_line = "x, y, accuracy"
-        writer.writerows([csv_line.split(',')])
-
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     output_movie = cv2.VideoWriter(
         "processed.mp4", fourcc, fps, (width, height))
@@ -110,7 +104,7 @@ def targeted_object_counting(input_video, detection_graph, category_index, is_co
                             np.squeeze(scores)[i]
                         ])
 
-                np.savetxt('report.csv', new_boxes, delimiter=',')
+                np.savetxt('report.csv', new_boxes, delimiter=',', header='x, y, accuracy', comments='')
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
