@@ -104,7 +104,11 @@ def targeted_object_counting(input_video, detection_graph, category_index, is_co
                             np.squeeze(scores)[i]
                         ])
 
-                np.savetxt('assets/report.csv', new_boxes, delimiter=',', header='x, y, accuracy', comments='')
+                with open('web/assets/report.csv', 'w') as fout:
+                    np.savetxt(fout, new_boxes,
+                               delimiter=',', header='x, y, accuracy', comments='')
+                    fout.seek(-1, 2)
+                    fout.truncate()
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
@@ -116,7 +120,7 @@ def targeted_object_counting(input_video, detection_graph, category_index, is_co
 def cumulative_object_counting_x_axis(input_video, detection_graph, category_index, is_color_recognition_enabled, fps, width, height, roi, deviation):
     total_passed_vehicle = 0
 
-    #initialize .csv
+    # initialize .csv
     with open('report.csv', 'w') as f:
         writer = csv.writer(f)
         csv_line = "x,y,accuracy"
