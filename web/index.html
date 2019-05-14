@@ -4,6 +4,7 @@
 <head>
     <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
+    <link href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
     <title>Kraken</title>
 </head>
@@ -17,14 +18,14 @@
 
                     <v-spacer></v-spacer>
 
-
-                    <v-btn icon>
-                        <v-icon>mdi-github-circle</v-icon>
-                    </v-btn>
-
                     <v-btn icon>
                         <v-icon>refresh</v-icon>
                     </v-btn>
+
+                    <v-btn icon>
+                        <v-icon>settings</v-icon>
+                    </v-btn>
+
                 </v-toolbar>
                 <v-container grid-list-lg>
                     <v-layout wrap>
@@ -84,6 +85,60 @@
                     </v-layout>
                 </v-container>
             </v-content>
+            <v-footer dark height="auto">
+                <v-card class="flex" flat tile>
+                    <v-card-actions class="grey darken-3 justify-center">
+                        <v-layout align-center>
+                            <v-flex xs4 text-xs-center offset-xs4>
+                                &copy;2019&nbsp;—&nbsp;<strong>Daniel Gohl</strong>
+                            </v-flex>
+                            <v-flex xs4 text-xs-right>
+                                <v-tooltip top>
+                                    <template v-slot:activator="{ on }">
+                                        <v-btn class="mx-3" dark icon v-on="on"
+                                            v-on:click="open_url('https://www.github.com/danielgohl13/kraken')">
+                                            <v-icon size="24px">fab fa-github</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Open on Github</span>
+                                </v-tooltip>
+                            </v-flex>
+                        </v-layout>
+                    </v-card-actions>
+                </v-card>
+            </v-footer>
+            <div class="text-xs-center">
+                <v-dialog v-model="dialog" width="500">
+                    <template v-slot:activator="{ on }">
+                        <v-btn color="red lighten-2" dark v-on="on">
+                            Click Me
+                        </v-btn>
+                    </template>
+            
+                    <v-card>
+                        <v-card-title class="headline grey lighten-2" primary-title>
+                            Privacy Policy
+                        </v-card-title>
+            
+                        <v-card-text>
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+                            dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+                            ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+                            fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
+                            deserunt mollit anim id est laborum.
+                        </v-card-text>
+            
+                        <v-divider></v-divider>
+            
+                        <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn color="primary" flat @click="dialog = false">
+                                I accept
+                            </v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
+            </div>
         </v-app>
     </div>
 
@@ -108,8 +163,7 @@
                     plotOptions: {
                         bar: {
                             horizontal: false,
-                            columnWidth: '55%',
-                            endingShape: 'rounded'
+                            columnWidth: '60%',
                         },
                     },
                     dataLabels: {
@@ -151,6 +205,13 @@
                         }]
                     }
                 }
+            },
+            methods: {
+
+                open_url: function (url) {
+                    window.open(url, "_blank");
+                }
+
             }
         });
 
