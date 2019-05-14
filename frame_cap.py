@@ -7,7 +7,7 @@ import numpy as np
 
 import object_count
 
-PATH_IN = "http://192.168.0.100:8080/shot.jpg"
+PATH_IN = "http://192.168.0.102:8080/shot.jpg"
 PATH_OUT = "cam.mp4"
 FPS = 24.0
 TIMEOUT = 5.0

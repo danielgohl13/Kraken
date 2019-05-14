@@ -12,7 +12,7 @@
     <div id="app">
         <v-app>
             <v-content>
-                <v-toolbar dark color="primary">
+                <v-toolbar dark color="blue">
                     <v-toolbar-title class="white--text">Kraken</v-toolbar-title>
 
                     <v-spacer></v-spacer>
@@ -87,29 +87,23 @@
         </v-app>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.6.3/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-apexcharts"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
 
     <script>
-
-        new Vue({
+        var vm = new Vue({
             el: '#app',
             components: {
                 apexchart: VueApexCharts,
             },
             data: {
-                quantity: 100,
-                accuracy: 100,
-                size: 100,
-                series: [{
-                    name: 'Quantidade',
-                    data: [20, 40, 35]
-                },{
-                    name: 'Acurácia',
-                    data: [78, 79, 99]
-                },],
+                quantity: 0,
+                accuracy: 0,
+                size: 0,
+                series: [{ name: 'Quantidade' }, { name: 'Acurácia' },],
                 chartOptions: {
                     plotOptions: {
                         bar: {
@@ -130,16 +124,17 @@
                     xaxis: {
                         categories: ['Pequenos', 'Médios', 'Grandes'],
                     },
-                    yaxis: [{
-                        title: {
-                            text: 'Quantidade'
+                    yaxis: [
+                        {
+                            title: { text: 'Quantidade' },
+                            decimalsInFloat: 0,
+                        },
+                        {
+                            opposite: true,
+                            title: { text: 'Acurácia (%)' },
+                            decimalsInFloat: 0,
                         }
-                    }, {
-                        opposite: true,
-                        title: {
-                            text: 'Acurácia (%)'
-                        }
-                    }],
+                    ],
                     fill: {
                         opacity: 1
 
@@ -149,15 +144,82 @@
                             formatter: function (val) {
                                 return val + " peixes"
                             }
-                        },{
+                        }, {
                             formatter: function (val) {
-                                return val + "%"
+                                return val.toFixed(2) + "%"
                             }
                         }]
                     }
                 }
             }
-        })
+        });
+
+        var accAvg = function (fisharr) {
+            var total = 0;
+            for (let i = 0; i < fisharr.length; i++) {
+                const f = fisharr[i];
+                total += f.accuracy;
+            }
+
+            if (total == 0)
+                return 0;
+            else {
+                return total * 100 / fisharr.length;
+            }
+        }
+
+        var sizAvg = function (fisharr) {
+            var total = 0;
+            for (let i = 0; i < fisharr.length; i++) {
+                const f = fisharr[i];
+                total += f.x * f.y;
+            }
+
+            if (total == 0)
+                return 0;
+            else {
+                return total * 100 / fisharr.length;
+            }
+        }
+
+        Papa.parse("assets/report.csv", {
+            download: true,
+            header: true,
+            dynamicTyping: true,
+            complete: function (results) {
+                console.log("Finished:", results.data);
+                vm.quantity = results.data.length;
+                maxFish = Math.max.apply(Math, results.data.map(function (o) { return o.x * o.y; }));
+
+                fishs = results.data.filter(function (f) {
+                    return f.x * f.y < maxFish / 3;
+                });
+
+                fishm = results.data.filter(function (f) {
+                    var area = f.x * f.y;
+                    return (area >= maxFish / 3) && (area < 2 * maxFish / 3);
+                });
+
+                fishl = results.data.filter(function (f) {
+                    var area = f.x * f.y;
+                    return area > 2 * maxFish / 3;
+                });
+
+                vm.accuracy = accAvg(results.data).toFixed(2) + "%";
+                vm.size = sizAvg(results.data).toFixed(2) + " cm²"
+
+                vm.series = [
+                    //  Quantidade
+                    {
+                        data: [fishs.length, fishm.length, fishl.length]
+                    },
+                    // Acurácia
+                    {//        P   M   G
+                        data: [accAvg(fishs), accAvg(fishm), accAvg(fishl)]
+                    },
+                ];
+            }
+        });
 
 
     </script>

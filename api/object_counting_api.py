@@ -11,7 +11,7 @@ import numpy as np
 import tensorflow as tf
 
 from utils import visualization_utils as vis_util
-size_ratio = 100.0
+size_ratio = 1.0
 
 
 def targeted_object_counting(input_video, detection_graph, category_index, is_color_recognition_enabled, targeted_object, fps, width, height):
@@ -104,7 +104,7 @@ def targeted_object_counting(input_video, detection_graph, category_index, is_co
                             np.squeeze(scores)[i]
                         ])
 
-                np.savetxt('report.csv', new_boxes, delimiter=',', header='x, y, accuracy', comments='')
+                np.savetxt('assets/report.csv', new_boxes, delimiter=',', header='x, y, accuracy', comments='')
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
@@ -119,7 +119,7 @@ def cumulative_object_counting_x_axis(input_video, detection_graph, category_ind
     #initialize .csv
     with open('report.csv', 'w') as f:
         writer = csv.writer(f)
-        csv_line = "x, y, accuracy"
+        csv_line = "x,y,accuracy"
         writer.writerows([csv_line.split(',')])
 
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
