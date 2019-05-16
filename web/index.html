@@ -22,10 +22,61 @@
                         <v-icon>refresh</v-icon>
                     </v-btn>
 
-                    <v-btn icon>
-                        <v-icon>settings</v-icon>
-                    </v-btn>
+                    <div class="text-xs-center">
+                        <v-dialog v-model="dialog" width="500">
+                            <template v-slot:activator="{ on }">
+                                <v-btn icon dark v-on="on">
+                                    <v-icon>settings</v-icon>
+                                </v-btn>
+                            </template>
 
+                            <v-card>
+                                <v-card-title class="headline grey lighten-2" primary-title>
+                                    Configurações
+                                </v-card-title>
+
+                                <v-container align-center>
+                                    <v-radio-group v-model="radios">
+                                        <template v-slot:label>
+                                            <div>Distribuíção de tamanho</div>
+                                        </template>
+                                        <v-radio value="fixed">
+                                            <template v-slot:label>
+                                                <div xs3 s3>Tamanho Fixo </div>
+
+                                                <v-flex xs3 s3>
+                                                    <v-text-field label="Pequeno" outline></v-text-field>
+                                                </v-flex>
+                                                <v-flex xs3 s3>
+                                                    <v-text-field label="Médio" outline></v-text-field>
+                                                </v-flex>
+                                                <v-flex xs3 s3>
+                                                    <v-text-field label="Grande" outline></v-text-field>
+                                                </v-flex>
+                                            </template>
+                                        </v-radio>
+                                        <v-radio value="quartis">
+                                            <template v-slot:label>
+                                                <div>Quartis</div>
+                                            </template>
+                                        </v-radio>
+                                    </v-radio-group>
+                                </v-container>
+
+                                <v-divider></v-divider>
+
+                                <v-card-actions>
+                                    <v-spacer></v-spacer>
+                                    <v-btn color="primary" flat @click="dialog = false">
+                                        Cancelar
+                                    </v-btn>
+                                    <v-btn color="primary" flat @click="dialog = false">
+                                        Salvar
+                                    </v-btn>
+                                </v-card-actions>
+                            </v-card>
+                        </v-dialog>
+                    </div>
                 </v-toolbar>
                 <v-container grid-list-lg>
                     <v-layout wrap>
@@ -72,7 +123,7 @@
                             </v-card>
                         </v-flex>
                         <v-flex xs12>
-                            <v-card>
+                            <v-card >
                                 <v-card-title primary-title>
                                     <h3 class="headline mb-0">Distribuição de peixes por tamanho</h3>
                                 </v-card-title>
@@ -80,8 +131,23 @@
                                     <apexchart type=bar height=350 :options="chartOptions" :series="series" />
                                 </div>
                             </v-card>
-                        </v-flex>
-
+                            <v-speed-dial v-model="fab" :left="left" :direction="direction" :open-on-hover="hover" :transition="transition">
+                                <template v-slot:activator>
+                                    <v-btn v-model="fab" color="blue darken-2" dark fab>
+                                        <v-icon>account_circle</v-icon>
+                                        <v-icon>close</v-icon>
+                                    </v-btn>
+                                </template>
+                                <v-btn fab dark small color="green">
+                                    <v-icon>edit</v-icon>
+                                </v-btn>
+                                <v-btn fab dark small color="indigo">
+                                    <v-icon>add</v-icon>
+                                </v-btn>
+                                <v-btn fab dark small color="red">
+                                    <v-icon>delete</v-icon>
+                                </v-btn>
+                            </v-speed-dial>
                     </v-layout>
                 </v-container>
             </v-content>
@@ -107,54 +173,34 @@
                     </v-card-actions>
                 </v-card>
             </v-footer>
-            <div class="text-xs-center">
-                <v-dialog v-model="dialog" width="500">
-                    <template v-slot:activator="{ on }">
-                        <v-btn color="red lighten-2" dark v-on="on">
-                            Click Me
-                        </v-btn>
-                    </template>
-            
-                    <v-card>
-                        <v-card-title class="headline grey lighten-2" primary-title>
-                            Privacy Policy
-                        </v-card-title>
-            
-                        <v-card-text>
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-                            dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                            ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                            fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
-                            deserunt mollit anim id est laborum.
-                        </v-card-text>
-            
-                        <v-divider></v-divider>
-            
-                        <v-card-actions>
-                            <v-spacer></v-spacer>
-                            <v-btn color="primary" flat @click="dialog = false">
-                                I accept
-                            </v-btn>
-                        </v-card-actions>
-                    </v-card>
-                </v-dialog>
-            </div>
+
         </v-app>
+
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.6.3/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-upload-component"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-apexcharts"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
 
     <script>
+
+
         var vm = new Vue({
             el: '#app',
             components: {
                 apexchart: VueApexCharts,
             },
+
             data: {
+
+                direction: 'left',
+                fab: false,
+                hover: true,
+                transition: 'scale-transition',
+
                 quantity: 0,
                 accuracy: 0,
                 size: 0,
