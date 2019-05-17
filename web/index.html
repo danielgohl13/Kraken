@@ -123,7 +123,7 @@
                             </v-card>
                         </v-flex>
                         <v-flex xs12>
-                            <v-card >
+                            <v-card>
                                 <v-card-title primary-title>
                                     <h3 class="headline mb-0">Distribuição de peixes por tamanho</h3>
                                 </v-card-title>
@@ -131,24 +131,25 @@
                                     <apexchart type=bar height=350 :options="chartOptions" :series="series" />
                                 </div>
                             </v-card>
-                            <v-speed-dial v-model="fab" :left="left" :direction="direction" :open-on-hover="hover" :transition="transition">
-                                <template v-slot:activator>
+                        </v-flex>
+                    </v-layout>
+                    <v-speed-dial v-model="fab" fixed right bottom direction="top" open-on-hover transition="scale-transition" style="bottom: 65px">
+                        <template v-slot:activator>
                                     <v-btn v-model="fab" color="blue darken-2" dark fab>
                                         <v-icon>account_circle</v-icon>
                                         <v-icon>close</v-icon>
                                     </v-btn>
                                 </template>
-                                <v-btn fab dark small color="green">
-                                    <v-icon>edit</v-icon>
-                                </v-btn>
-                                <v-btn fab dark small color="indigo">
-                                    <v-icon>add</v-icon>
-                                </v-btn>
-                                <v-btn fab dark small color="red">
-                                    <v-icon>delete</v-icon>
-                                </v-btn>
-                            </v-speed-dial>
-                    </v-layout>
+                        <v-btn fab dark small color="green">
+                            <v-icon>edit</v-icon>
+                        </v-btn>
+                        <v-btn fab dark small color="indigo">
+                            <v-icon>add</v-icon>
+                        </v-btn>
+                        <v-btn fab dark small color="red">
+                            <v-icon>delete</v-icon>
+                        </v-btn>
+                    </v-speed-dial>
                 </v-container>
             </v-content>
             <v-footer dark height="auto">
@@ -186,8 +187,6 @@
     <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
 
     <script>
-
-
         var vm = new Vue({
             el: '#app',
             components: {
@@ -196,15 +195,14 @@
 
             data: {
 
-                direction: 'left',
-                fab: false,
-                hover: true,
-                transition: 'scale-transition',
-
                 quantity: 0,
                 accuracy: 0,
                 size: 0,
-                series: [{ name: 'Quantidade' }, { name: 'Acurácia' },],
+                series: [{
+                    name: 'Quantidade'
+                }, {
+                    name: 'Acurácia'
+                }, ],
                 chartOptions: {
                     plotOptions: {
                         bar: {
@@ -224,28 +222,29 @@
                     xaxis: {
                         categories: ['Pequenos', 'Médios', 'Grandes'],
                     },
-                    yaxis: [
-                        {
-                            title: { text: 'Quantidade' },
-                            decimalsInFloat: 0,
+                    yaxis: [{
+                        title: {
+                            text: 'Quantidade'
                         },
-                        {
-                            opposite: true,
-                            title: { text: 'Acurácia (%)' },
-                            decimalsInFloat: 0,
-                        }
-                    ],
+                        decimalsInFloat: 0,
+                    }, {
+                        opposite: true,
+                        title: {
+                            text: 'Acurácia (%)'
+                        },
+                        decimalsInFloat: 0,
+                    }],
                     fill: {
                         opacity: 1
 
                     },
                     tooltip: {
                         y: [{
-                            formatter: function (val) {
+                            formatter: function(val) {
                                 return val + " peixes"
                             }
                         }, {
-                            formatter: function (val) {
+                            formatter: function(val) {
                                 return val.toFixed(2) + "%"
                             }
                         }]
@@ -254,14 +253,14 @@
             },
             methods: {
 
-                open_url: function (url) {
+                open_url: function(url) {
                     window.open(url, "_blank");
                 }
 
             }
         });
 
-        var accAvg = function (fisharr) {
+        var accAvg = function(fisharr) {
             var total = 0;
             for (let i = 0; i < fisharr.length; i++) {
                 const f = fisharr[i];
@@ -275,7 +274,7 @@
             }
         }
 
-        var sizAvg = function (fisharr) {
+        var sizAvg = function(fisharr) {
             var total = 0;
             for (let i = 0; i < fisharr.length; i++) {
                 const f = fisharr[i];
@@ -293,21 +292,23 @@
             download: true,
             header: true,
             dynamicTyping: true,
-            complete: function (results) {
+            complete: function(results) {
                 console.log("Finished:", results.data);
                 vm.quantity = results.data.length;
-                maxFish = Math.max.apply(Math, results.data.map(function (o) { return o.x * o.y; }));
+                maxFish = Math.max.apply(Math, results.data.map(function(o) {
+                    return o.x * o.y;
+                }));
 
-                fishs = results.data.filter(function (f) {
+                fishs = results.data.filter(function(f) {
                     return f.x * f.y < maxFish / 3;
                 });
 
-                fishm = results.data.filter(function (f) {
+                fishm = results.data.filter(function(f) {
                     var area = f.x * f.y;
                     return (area >= maxFish / 3) && (area < 2 * maxFish / 3);
                 });
 
-                fishl = results.data.filter(function (f) {
+                fishl = results.data.filter(function(f) {
                     var area = f.x * f.y;
                     return area > 2 * maxFish / 3;
                 });
@@ -321,14 +322,12 @@
                         data: [fishs.length, fishm.length, fishl.length]
                     },
                     // Acurácia
-                    {//        P   M   G
+                    { //        P   M   G
                         data: [accAvg(fishs), accAvg(fishm), accAvg(fishl)]
                     },
                 ];
             }
         });
-
-
     </script>
 </body>
 
