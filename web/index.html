@@ -135,23 +135,56 @@
                     </v-layout>
                     <v-speed-dial v-model="fab" fixed right bottom direction="top" open-on-hover transition="scale-transition" style="bottom: 65px">
                         <template v-slot:activator>
-                                    <v-btn v-model="fab" color="blue darken-2" dark fab>
-                                        <v-icon>account_circle</v-icon>
+                                    <v-btn v-model="fab" color="indigo" dark fab>
+                                        <v-icon>add</v-icon>
                                         <v-icon>close</v-icon>
                                     </v-btn>
+                        </template>
+                        <template>
+                            <v-layout row justify-center>
+                              <v-dialog v-model="dialogc" persistent max-width="290">
+                                <template v-slot:activator="{ on }">
+                                  <v-btn fab dark small color="teal" v-on="on">
+                                    <v-icon >videocam</v-icon>
+                                  </v-btn>
                                 </template>
-                        <v-btn fab dark small color="green">
-                            <v-icon>edit</v-icon>
-                        </v-btn>
-                        <v-btn fab dark small color="indigo">
-                            <v-icon>add</v-icon>
-                        </v-btn>
-                        <v-btn fab dark small color="red">
-                            <v-icon>delete</v-icon>
+                                <v-card>
+                                    <v-card-title class="headline">Opções da Stream</v-card-title>
+                                    <v-flex align-center xs12>
+                                        <v-text-field
+                                            label="IP"
+                                            mask = "###.###.###.###"
+                                        ></v-text-field>
+                                    </v-flex>
+                                    <v-flex align-center xs12>
+                                        <v-text-field
+                                             label="Frames por segundo"
+                                            mask = "###"
+                                        ></v-text-field>
+                                    </v-flex>
+                                    <v-flex align-center xs12>
+                                        <v-text-field
+                                            label="Duração"
+                                            mask = "###s"
+                                        ></v-text-field>
+                                    </v-flex>
+                          
+                                  <v-card-actions>
+                                    <v-spacer></v-spacer>
+                                    <v-btn color="blue darken-1" flat @click="dialogc = false">Cancelar</v-btn>
+                                    <v-btn color="blue darken-1" flat @click="dialogc = false">Iniciar</v-btn>
+                                  </v-card-actions>
+                                </v-card>
+                              </v-dialog>
+                            </v-layout>
+                          </template>
+                        <v-btn fab dark small color="blue">
+                            <v-icon>attach_file</v-icon>
                         </v-btn>
                     </v-speed-dial>
                 </v-container>
             </v-content>
+            
             <v-footer dark height="auto">
                 <v-card class="flex" flat tile>
                     <v-card-actions class="grey darken-3 justify-center">
@@ -173,6 +206,7 @@
                         </v-layout>
                     </v-card-actions>
                 </v-card>
+
             </v-footer>
 
         </v-app>
@@ -194,7 +228,8 @@
             },
 
             data: {
-
+                dialogc: false,
+                camload: false,
                 quantity: 0,
                 accuracy: 0,
                 size: 0,
