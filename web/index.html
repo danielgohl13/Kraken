@@ -200,7 +200,6 @@
                     </v-speed-dial>
                 </v-container>
             </v-content>
-
             <v-footer dark height="auto">
                 <v-card class="flex" flat tile>
                     <v-card-actions class="grey darken-3 justify-center">
@@ -298,11 +297,11 @@
                     },
                     tooltip: {
                         y: [{
-                            formatter: function (val) {
+                            formatter: function(val) {
                                 return val + " peixes"
                             }
                         }, {
-                            formatter: function (val) {
+                            formatter: function(val) {
                                 return val.toFixed(2) + "%"
                             }
                         }]
@@ -386,7 +385,7 @@
             }
         });
 
-        var accAvg = function (fisharr) {
+        var accAvg = function(fisharr) {
             var total = 0;
             for (let i = 0; i < fisharr.length; i++) {
                 const f = fisharr[i];
@@ -400,7 +399,7 @@
             }
         }
 
-        var sizAvg = function (fisharr) {
+        var sizAvg = function(fisharr) {
             var total = 0;
             for (let i = 0; i < fisharr.length; i++) {
                 const f = fisharr[i];
