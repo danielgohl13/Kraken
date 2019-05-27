@@ -57,18 +57,13 @@
                                                     <v-container grid-list-xl>
                                                         <v-layout row>
                                                             <v-flex xs6>
-                                                                <v-text-field
-                                                                    v-model="smThreshold"
-                                                                    label="Médio"
-                                                                    suffix="cm²"
-                                                                    hint="Tamanho mínimo de um peixe médio"
+                                                                <v-text-field v-model="smThreshold" label="Médio"
+                                                                    suffix="cm²" hint="Tamanho mínimo de um peixe médio"
                                                                     :rules="[v => (!!v || sizeSplit=='default') || 'Não pode estar vazio']">
                                                                 </v-text-field>
                                                             </v-flex>
                                                             <v-flex xs6>
-                                                                <v-text-field
-                                                                    v-model="mdThreshold"
-                                                                    label="Grande"
+                                                                <v-text-field v-model="mdThreshold" label="Grande"
                                                                     suffix="cm²"
                                                                     hint="Tamanho mínimo de um peixe grande"
                                                                     :rules="[v => !!v || sizeSplit=='default' || 'Não pode estar vazio',
@@ -163,18 +158,19 @@
                                 <v-icon>close</v-icon>
                             </v-btn>
                         </template>
-                        <template>
-                            <v-layout row justify-center>
-                                <v-dialog v-model="dialogc" persistent max-width="290">
-                                    <template v-slot:activator="{ on }">
-                                        <v-btn fab dark small color="teal" v-on="on">
-                                            <v-icon>videocam</v-icon>
-                                        </v-btn>
-                                    </template>
-                                   
-                                    <v-card align-center>
-
-                                        <v-card-title class="headline">Opções da Stream</v-card-title>
+                        <v-btn fab dark small color="teal" v-on="on" @click.stop="dialogc = true">
+                            <v-icon>videocam</v-icon>
+                        </v-btn>
+                        <v-btn fab dark small color="blue">
+                            <v-icon>attach_file</v-icon>
+                        </v-btn>
+                    </v-speed-dial>
+                    <template>
+                        <v-layout row justify-center>
+                            <v-dialog v-model="dialogc" max-width="290">
+                                <v-card>
+                                    <v-card-title class="headline">Opções da Stream</v-card-title>
+                                    <v-container>
                                         <v-flex align-center xs12>
                                             <v-text-field label="IP" mask="###.###.###.###"></v-text-field>
                                         </v-flex>
@@ -184,20 +180,17 @@
                                         <v-flex align-center xs12>
                                             <v-text-field label="Duração" mask="###s"></v-text-field>
                                         </v-flex>
-
-                                        <v-card-actions>
-                                            <v-spacer></v-spacer>
-                                            <v-btn color="blue darken-1" flat @click="dialogc = false">Cancelar</v-btn>
-                                            <v-btn color="blue darken-1" flat @click="dialogc = false">Iniciar</v-btn>
-                                        </v-card-actions>
-                                    </v-card>
-                                </v-dialog>
-                            </v-layout>
-                        </template>
-                        <v-btn fab dark small color="blue">
-                            <v-icon>attach_file</v-icon>
-                        </v-btn>
-                    </v-speed-dial>
+                                    </v-container>
+                    
+                                    <v-card-actions>
+                                        <v-spacer></v-spacer>
+                                        <v-btn color="blue darken-1" flat @click="dialogc = false">Cancelar</v-btn>
+                                        <v-btn color="blue darken-1" flat @click="dialogc = false">Iniciar</v-btn>
+                                    </v-card-actions>
+                                </v-card>
+                            </v-dialog>
+                        </v-layout>
+                    </template>
                 </v-container>
             </v-content>
             <v-footer dark height="auto">
@@ -297,11 +290,11 @@
                     },
                     tooltip: {
                         y: [{
-                            formatter: function(val) {
+                            formatter: function (val) {
                                 return val + " peixes"
                             }
                         }, {
-                            formatter: function(val) {
+                            formatter: function (val) {
                                 return val.toFixed(2) + "%"
                             }
                         }]
@@ -385,7 +378,7 @@
             }
         });
 
-        var accAvg = function(fisharr) {
+        var accAvg = function (fisharr) {
             var total = 0;
             for (let i = 0; i < fisharr.length; i++) {
                 const f = fisharr[i];
@@ -399,7 +392,7 @@
             }
         }
 
-        var sizAvg = function(fisharr) {
+        var sizAvg = function (fisharr) {
             var total = 0;
             for (let i = 0; i < fisharr.length; i++) {
                 const f = fisharr[i];
