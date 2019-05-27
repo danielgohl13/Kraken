@@ -17,60 +17,85 @@
                     <v-toolbar-title class="white--text">Kraken</v-toolbar-title>
 
                     <v-spacer></v-spacer>
-
-                    <v-btn icon>
-                        <v-icon>refresh</v-icon>
-                    </v-btn>
+                    <v-tooltip bottom>
+                        <template v-slot:activator="{ on }">
+                            <v-btn class="mx-3" dark icon v-on="on" v-on:click="parse">
+                                <v-icon>refresh</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Recarregar</span>
+                    </v-tooltip>
+                    <v-tooltip bottom>
+                        <template v-slot:activator="{ on }">
+                            <v-btn class="mx-3" dark icon v-on="on" @click.stop="settingsDialog = true">
+                                <v-icon>settings</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Configurações</span>
+                    </v-tooltip>
 
                     <div class="text-xs-center">
-                        <v-dialog v-model="dialog" width="500">
-                            <template v-slot:activator="{ on }">
-                                <v-btn icon dark v-on="on">
-                                    <v-icon>settings</v-icon>
-                                </v-btn>
-                            </template>
-
+                        <v-dialog v-model="settingsDialog" width="500">
                             <v-card>
                                 <v-card-title class="headline grey lighten-2" primary-title>
                                     Configurações
                                 </v-card-title>
 
                                 <v-container align-center>
-                                    <v-radio-group v-model="radios">
-                                        <template v-slot:label>
-                                            <div>Distribuíção de tamanho</div>
-                                        </template>
-                                        <v-radio value="fixed">
+                                    <v-form ref="form" v-model="settingsValid" lazy-validation>
+                                        <v-radio-group v-model="sizeSplit">
                                             <template v-slot:label>
-                                                <div xs3 s3>Tamanho Fixo </div>
-
-                                                <v-flex xs3 s3>
-                                                    <v-text-field label="Pequeno" outline></v-text-field>
-                                                </v-flex>
-                                                <v-flex xs3 s3>
-                                                    <v-text-field label="Médio" outline></v-text-field>
-                                                </v-flex>
-                                                <v-flex xs3 s3>
-                                                    <v-text-field label="Grande" outline></v-text-field>
-                                                </v-flex>
+                                                <div>Distribuição de tamanho</div>
                                             </template>
-                                        </v-radio>
-                                        <v-radio value="quartis">
-                                            <template v-slot:label>
-                                                <div>Quartis</div>
-                                            </template>
-                                        </v-radio>
-                                    </v-radio-group>
+                                            <v-radio value="custom">
+                                                <template v-slot:label>
+                                                    <div>Tamanho Fixo</div>
+                                                </template>
+                                            </v-radio>
+                                            <v-expand-transition>
+                                                <v-flex shrink v-show="sizeSplit=='custom'">
+                                                    <v-container grid-list-xl>
+                                                        <v-layout row>
+                                                            <v-flex xs6>
+                                                                <v-text-field
+                                                                    v-model="smThreshold"
+                                                                    label="Médio"
+                                                                    suffix="cm²"
+                                                                    hint="Tamanho mínimo de um peixe médio"
+                                                                    :rules="[v => (!!v || sizeSplit=='default') || 'Não pode estar vazio']">
+                                                                </v-text-field>
+                                                            </v-flex>
+                                                            <v-flex xs6>
+                                                                <v-text-field
+                                                                    v-model="mdThreshold"
+                                                                    label="Grande"
+                                                                    suffix="cm²"
+                                                                    hint="Tamanho mínimo de um peixe grande"
+                                                                    :rules="[v => !!v || sizeSplit=='default' || 'Não pode estar vazio',
+                                                                             v => Number(v) > Number(smThreshold) || sizeSplit=='default' || 'Deve ser maior que o médio']">
+                                                                </v-text-field>
+                                                            </v-flex>
+                                                        </v-layout>
+                                                    </v-container>
+                                                </v-flex>
+                                            </v-expand-transition>
+                                            <v-radio value="default">
+                                                <template v-slot:label>
+                                                    <div>Quartis</div>
+                                                </template>
+                                            </v-radio>
+                                        </v-radio-group>
+                                    </v-form>
                                 </v-container>
 
                                 <v-divider></v-divider>
 
                                 <v-card-actions>
                                     <v-spacer></v-spacer>
-                                    <v-btn color="primary" flat @click="dialog = false">
+                                    <v-btn color="primary" flat @click="settingsDialog = false">
                                         Cancelar
                                     </v-btn>
-                                    <v-btn color="primary" flat @click="dialog = false">
+                                    <v-btn color="primary" flat @click="saveSettings">
                                         Salvar
                                     </v-btn>
                                 </v-card-actions>
@@ -110,9 +135,6 @@
                         </v-flex>
                         <v-flex xs12 sm4>
                             <v-card>
-                                <!-- <v-img src="https://cdn.vuetifyjs.com/images/cards/desert.jpg" aspect-ratio="2.75"> -->
-                                </v-img>
-
                                 <v-card-title primary-title>
                                     <div>
                                         <h3 class="headline mb-0">Acurácia média</h3>
@@ -123,7 +145,7 @@
                             </v-card>
                         </v-flex>
                         <v-flex xs12>
-                            <v-card >
+                            <v-card>
                                 <v-card-title primary-title>
                                     <h3 class="headline mb-0">Distribuição de peixes por tamanho</h3>
                                 </v-card-title>
@@ -131,26 +153,54 @@
                                     <apexchart type=bar height=350 :options="chartOptions" :series="series" />
                                 </div>
                             </v-card>
-                            <v-speed-dial v-model="fab" :left="left" :direction="direction" :open-on-hover="hover" :transition="transition">
-                                <template v-slot:activator>
-                                    <v-btn v-model="fab" color="blue darken-2" dark fab>
-                                        <v-icon>account_circle</v-icon>
-                                        <v-icon>close</v-icon>
-                                    </v-btn>
-                                </template>
-                                <v-btn fab dark small color="green">
-                                    <v-icon>edit</v-icon>
-                                </v-btn>
-                                <v-btn fab dark small color="indigo">
-                                    <v-icon>add</v-icon>
-                                </v-btn>
-                                <v-btn fab dark small color="red">
-                                    <v-icon>delete</v-icon>
-                                </v-btn>
-                            </v-speed-dial>
+                        </v-flex>
                     </v-layout>
+                    <v-speed-dial v-model="fab" fixed right bottom direction="top" open-on-hover
+                        transition="scale-transition" style="bottom: 65px">
+                        <template v-slot:activator>
+                            <v-btn v-model="fab" color="indigo" dark fab>
+                                <v-icon>add</v-icon>
+                                <v-icon>close</v-icon>
+                            </v-btn>
+                        </template>
+                        <template>
+                            <v-layout row justify-center>
+                                <v-dialog v-model="dialogc" persistent max-width="290">
+                                    <template v-slot:activator="{ on }">
+                                        <v-btn fab dark small color="teal" v-on="on">
+                                            <v-icon>videocam</v-icon>
+                                        </v-btn>
+                                    </template>
+                                   
+                                    <v-card align-center>
+
+                                        <v-card-title class="headline">Opções da Stream</v-card-title>
+                                        <v-flex align-center xs12>
+                                            <v-text-field label="IP" mask="###.###.###.###"></v-text-field>
+                                        </v-flex>
+                                        <v-flex align-center xs12>
+                                            <v-text-field label="Frames por segundo" mask="###"></v-text-field>
+                                        </v-flex>
+                                        <v-flex align-center xs12>
+                                            <v-text-field label="Duração" mask="###s"></v-text-field>
+                                        </v-flex>
+
+                                        <v-card-actions>
+                                            <v-spacer></v-spacer>
+                                            <v-btn color="blue darken-1" flat @click="dialogc = false">Cancelar</v-btn>
+                                            <v-btn color="blue darken-1" flat @click="dialogc = false">Iniciar</v-btn>
+                                        </v-card-actions>
+                                    </v-card>
+                                </v-dialog>
+                            </v-layout>
+                        </template>
+                        <v-btn fab dark small color="blue">
+                            <v-icon>attach_file</v-icon>
+                        </v-btn>
+                    </v-speed-dial>
                 </v-container>
             </v-content>
+
             <v-footer dark height="auto">
                 <v-card class="flex" flat tile>
                     <v-card-actions class="grey darken-3 justify-center">
@@ -172,6 +222,7 @@
                         </v-layout>
                     </v-card-actions>
                 </v-card>
+
             </v-footer>
 
         </v-app>
@@ -186,25 +237,30 @@
     <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
 
     <script>
-
-
         var vm = new Vue({
             el: '#app',
             components: {
                 apexchart: VueApexCharts,
             },
-
             data: {
-
-                direction: 'left',
                 fab: false,
-                hover: true,
-                transition: 'scale-transition',
-
+                settingsValid: true,
+                settingsDialog: false,
+                sizeSplit: 'default', //TODO: get from saved settings
+                smThreshold: null, //TODO: get from saved settings
+                mdThreshold: null, //TODO: get from saved settings
+                dialogc: false,
+                camload: false,
                 quantity: 0,
                 accuracy: 0,
                 size: 0,
-                series: [{ name: 'Quantidade' }, { name: 'Acurácia' },],
+                series: [{
+                    name: 'Quantidade',
+                    data: []
+                }, {
+                    name: 'Acurácia',
+                    data: []
+                },],
                 chartOptions: {
                     plotOptions: {
                         bar: {
@@ -224,17 +280,18 @@
                     xaxis: {
                         categories: ['Pequenos', 'Médios', 'Grandes'],
                     },
-                    yaxis: [
-                        {
-                            title: { text: 'Quantidade' },
-                            decimalsInFloat: 0,
+                    yaxis: [{
+                        title: {
+                            text: 'Quantidade'
                         },
-                        {
-                            opposite: true,
-                            title: { text: 'Acurácia (%)' },
-                            decimalsInFloat: 0,
-                        }
-                    ],
+                        decimalsInFloat: 0,
+                    }, {
+                        opposite: true,
+                        title: {
+                            text: 'Acurácia (%)'
+                        },
+                        decimalsInFloat: 0,
+                    }],
                     fill: {
                         opacity: 1
 
@@ -253,9 +310,77 @@
                 }
             },
             methods: {
-
-                open_url: function (url) {
+                open_url(url) {
                     window.open(url, "_blank");
+                },
+
+                validate() {
+                    return this.$refs.form.validate();
+                },
+
+                saveSettings() {
+                    if (this.validate()) {
+                        this.parse();
+                        this.settingsDialog = false;
+                    }
+                },
+
+                parse() {
+                    Papa.parse("assets/report.csv?timestamp=" + new Date().getTime(), {
+                        download: true,
+                        header: true,
+                        dynamicTyping: true,
+                        complete: function (results) {
+                            console.log("Finished:", results.data);
+                            vm.quantity = results.data.length;
+                            var maxFish = Math.max.apply(Math, results.data.map(function (o) {
+                                return o.x * o.y;
+                            }));
+
+                            console.log(vm.sizeSplit, vm.smThreshold, vm.mdThreshold);
+
+                            var smThreshold = (vm.sizeSplit == 'custom') ? vm.smThreshold / 100 : null || maxFish / 3;
+                            var mdThreshold = (vm.sizeSplit == 'custom') ? vm.mdThreshold / 100 : null || 2 * maxFish / 3;
+
+                            var fishs = results.data.filter(function (f) {
+                                return f.x * f.y < smThreshold;
+                            });
+
+                            var fishm = results.data.filter(function (f) {
+                                var area = f.x * f.y;
+                                return (area >= smThreshold) && (area < mdThreshold);
+                            });
+
+                            var fishl = results.data.filter(function (f) {
+                                var area = f.x * f.y;
+                                return area > mdThreshold;
+                            });
+
+                            vm.accuracy = accAvg(results.data).toFixed(2) + "%";
+                            vm.size = sizAvg(results.data).toFixed(2) + " cm²"
+
+                            vm.series = [
+                                //  Quantidade
+                                {
+                                    data: [fishs.length, fishm.length, fishl.length]
+                                },
+                                // Acurácia
+                                { //        P   M   G
+                                    data: [accAvg(fishs), accAvg(fishm), accAvg(fishl)]
+                                },
+                            ];
+
+                            vm.chartOptions = {
+                                xaxis: {
+                                    categories: [
+                                        'Pequenos (<' + (smThreshold * 100).toFixed(1) + 'cm²)',
+                                        'Médios (<=' + (mdThreshold * 100).toFixed(1) + 'cm²)',
+                                        'Grandes (>' + (mdThreshold * 100).toFixed(1) + 'cm²)'
+                                    ],
+                                },
+                            };
+                        }
+                    });
                 }
 
             }
@@ -289,44 +414,7 @@
             }
         }
 
-        Papa.parse("assets/report.csv", {
-            download: true,
-            header: true,
-            dynamicTyping: true,
-            complete: function (results) {
-                console.log("Finished:", results.data);
-                vm.quantity = results.data.length;
-                maxFish = Math.max.apply(Math, results.data.map(function (o) { return o.x * o.y; }));
-
-                fishs = results.data.filter(function (f) {
-                    return f.x * f.y < maxFish / 3;
-                });
-
-                fishm = results.data.filter(function (f) {
-                    var area = f.x * f.y;
-                    return (area >= maxFish / 3) && (area < 2 * maxFish / 3);
-                });
-
-                fishl = results.data.filter(function (f) {
-                    var area = f.x * f.y;
-                    return area > 2 * maxFish / 3;
-                });
-
-                vm.accuracy = accAvg(results.data).toFixed(2) + "%";
-                vm.size = sizAvg(results.data).toFixed(2) + " cm²"
-
-                vm.series = [
-                    //  Quantidade
-                    {
-                        data: [fishs.length, fishm.length, fishl.length]
-                    },
-                    // Acurácia
-                    {//        P   M   G
-                        data: [accAvg(fishs), accAvg(fishm), accAvg(fishl)]
-                    },
-                ];
-            }
-        });
+        vm.parse();
 
 
     </script>
