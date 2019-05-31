@@ -158,7 +158,7 @@
                                 <v-icon>close</v-icon>
                             </v-btn>
                         </template>
-                        <v-btn fab dark small color="teal" v-on="on" @click.stop="dialogc = true">
+                        <v-btn fab dark small color="teal" v-on="on" @click.stop="streamDialog = true">
                             <v-icon>videocam</v-icon>
                         </v-btn>
                         <v-btn fab dark small color="blue">
@@ -167,27 +167,51 @@
                     </v-speed-dial>
                     <template>
                         <v-layout row justify-center>
-                            <v-dialog v-model="dialogc" max-width="290">
-                                <v-card>
-                                    <v-card-title class="headline">Opções da Stream</v-card-title>
-                                    <v-container>
-                                        <v-flex align-center xs12>
-                                            <v-text-field label="IP" mask="###.###.###.###"></v-text-field>
-                                        </v-flex>
-                                        <v-flex align-center xs12>
-                                            <v-text-field label="Frames por segundo" mask="###"></v-text-field>
-                                        </v-flex>
-                                        <v-flex align-center xs12>
-                                            <v-text-field label="Duração" mask="###s"></v-text-field>
-                                        </v-flex>
-                                    </v-container>
-                    
-                                    <v-card-actions>
-                                        <v-spacer></v-spacer>
-                                        <v-btn color="blue darken-1" flat @click="dialogc = false">Cancelar</v-btn>
-                                        <v-btn color="blue darken-1" flat @click="dialogc = false">Iniciar</v-btn>
-                                    </v-card-actions>
-                                </v-card>
+                            <v-dialog v-model="streamDialog" max-width="290" :persistent="capLoading">
+                                <v-expand-transition>
+                                    <v-card v-show="!capLoading">
+                                        <v-card-title class="headline">Opções da Stream</v-card-title>
+                                        <v-container>
+                                            <v-flex align-center xs12>
+                                                <v-text-field label="IP" v-model="streamIp"></v-text-field>
+                                            </v-flex>
+                                            <v-flex align-center xs12>
+                                                <v-text-field label="Frames por segundo" mask="###"></v-text-field>
+                                            </v-flex>
+                                            <v-flex align-center xs12>
+                                                <v-text-field label="Duração" mask="###s"></v-text-field>
+                                            </v-flex>
+                                        </v-container>
+
+                                        <v-card-actions>
+                                            <v-spacer></v-spacer>
+                                            <v-btn color="blue darken-1" flat @click="streamDialog = false">Cancelar</v-btn>
+                                            <v-btn color="blue darken-1" flat @click="startCapture">Iniciar</v-btn>
+                                        </v-card-actions>
+                                    </v-card>
+                                </v-expand-transition>
+                                <v-expand-transition>
+                                    <v-card v-show="capLoading">
+                                        <v-container>
+                                            <v-layout wrap>
+                                                <v-flex text-xs-center xs12>
+                                                    <v-progress-circular mb-4
+                                                        :indeterminate="streamIndeterminate"
+                                                        :value="capProgress"
+                                                        color="blue darken-1">
+                                                    </v-progress-circular>
+                                                    
+                                                </v-flex>
+                                                <v-flex v-show="streamIndeterminate" text-xs-center xs12>
+                                                    Processando Vídeo
+                                                </v-flex>
+                                                <v-flex v-show="!streamIndeterminate" text-xs-center xs12>
+                                                    Capturando Vídeo
+                                                </v-flex>
+                                            </v-layout>
+                                        </v-container>
+                                    </v-card>
+                                </v-expand-transition>
                             </v-dialog>
                         </v-layout>
                     </template>
@@ -222,6 +246,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.6.3/papaparse.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-upload-component"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-apexcharts"></script>
@@ -235,17 +260,23 @@
                 apexchart: VueApexCharts,
             },
             data: {
+                capLoading: false,
                 fab: false,
                 settingsValid: true,
                 settingsDialog: false,
                 sizeSplit: 'default', //TODO: get from saved settings
                 smThreshold: null, //TODO: get from saved settings
                 mdThreshold: null, //TODO: get from saved settings
-                dialogc: false,
+                streamDialog: false,
                 camload: false,
                 quantity: 0,
                 accuracy: 0,
                 size: 0,
+                streamIp: "",
+                streamIndeterminate: false,
+                capProgress: 0,
+                streamTime: 0,
+
                 series: [{
                     name: 'Quantidade',
                     data: []
@@ -304,6 +335,30 @@
             methods: {
                 open_url(url) {
                     window.open(url, "_blank");
+                },
+                
+                startCapture(){
+                    this.capLoading = true;
+                    this.streamIndeterminate = false;
+                    this.capProgress = 0;
+
+                    var interval = setInterval(() => {
+                        if (this.capProgress >= 100) {
+                            this.streamIndeterminate = true;
+                            clearInterval(interval);
+                        }
+                        this.capProgress += 5;
+                    }, 250)
+
+                    axios
+                        .get('/cap?ip='+this.streamIp+":8080")
+                        .then(response => {
+                            this.capLoading = false;
+                            this.streamDialog = false;
+                            this.parse();
+                            clearInterval(interval);
+                        })
+                    
                 },
 
                 validate() {
