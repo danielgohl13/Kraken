@@ -106,3 +106,6 @@ venv.bak/
 *.mp4
 cam.mp4
 web/assets/report.csv
+uploads/upload
+web/assets/report.csv
+web/assets/report.csv
