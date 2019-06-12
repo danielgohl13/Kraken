@@ -104,7 +104,7 @@ def targeted_object_counting(input_video, detection_graph, category_index, is_co
                             np.squeeze(scores)[i]
                         ])
 
-                with open('web/assets/report.csv', 'w') as fout:
+                with open('web/assets/report.csv', 'wb') as fout:
                     np.savetxt(fout, new_boxes,
                                delimiter=',', header='x,y,accuracy', comments='')
                     fout.seek(-1, 2)
