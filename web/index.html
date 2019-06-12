@@ -6,6 +6,7 @@
     <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
     <link href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <meta name="theme-color" content="#2196f3">
     <title>Kraken</title>
 </head>
 
@@ -13,7 +14,7 @@
     <div id="app">
         <v-app>
             <v-content>
-                <v-toolbar dark color="blue">
+                <v-toolbar dark color="blue" fixed>
                     <v-toolbar-title class="white--text">Kraken</v-toolbar-title>
 
                     <v-spacer></v-spacer>
@@ -161,7 +162,7 @@
                         <v-btn fab dark small color="teal" v-on="on" @click.stop="streamDialog = true">
                             <v-icon>videocam</v-icon>
                         </v-btn>
-                        <v-btn fab dark small color="blue">
+                        <v-btn fab dark small color="blue" v-on="on" @click.stop="inputDialog = true">
                             <v-icon>attach_file</v-icon>
                         </v-btn>
                     </v-speed-dial>
@@ -207,6 +208,50 @@
                                                 </v-flex>
                                                 <v-flex v-show="!streamIndeterminate" text-xs-center xs12>
                                                     Capturando Vídeo
+                                                </v-flex>
+                                            </v-layout>
+                                        </v-container>
+                                    </v-card>
+                                </v-expand-transition>
+                            </v-dialog>
+                        </v-layout>
+                    </template>
+                    <template>
+                        <v-layout row justify-center>
+                            <v-dialog v-model="inputDialog" max-width="290" :persistent="capLoading">
+                                <v-expand-transition>
+                                    <v-card v-show="!capLoading">
+                                        <v-card-title class="headline">Opções da Stream</v-card-title>
+                                        <v-container>
+                                            <v-flex align-center xs12>
+                                                <form id="sendFile" action="/upload" method="POST" 
+                                                enctype="multipart/form-data">
+                                                    <input id="file" type="file" name="file" />
+                                                </form>
+                                            </v-flex>
+                                        </v-container>
+
+                                        <v-card-actions>
+                                            <v-spacer></v-spacer>
+                                            <v-btn color="blue darken-1" flat @click="inputDialog = false">Cancelar</v-btn>
+                                            <v-btn color="blue darken-1" flat @click="sendFile">Enviar</v-btn>
+                                        </v-card-actions>
+                                    </v-card>
+                                </v-expand-transition>
+                                <v-expand-transition>
+                                    <v-card v-show="capLoading">
+                                        <v-container>
+                                            <v-layout wrap>
+                                                <v-flex text-xs-center xs12>
+                                                    <v-progress-circular mb-4
+                                                        :indeterminate="streamIndeterminate"
+                                                        :value="capProgress"
+                                                        color="blue darken-1">
+                                                    </v-progress-circular>
+                                                    
+                                                </v-flex>
+                                                <v-flex v-show="!streamIndeterminate" text-xs-center xs12>
+                                                    Enviando Vídeo
                                                 </v-flex>
                                             </v-layout>
                                         </v-container>
@@ -268,6 +313,7 @@
                 smThreshold: null, //TODO: get from saved settings
                 mdThreshold: null, //TODO: get from saved settings
                 streamDialog: false,
+                inputDialog: false,
                 camload: false,
                 quantity: 0,
                 accuracy: 0,
@@ -357,6 +403,26 @@
                             this.streamDialog = false;
                             this.parse();
                             clearInterval(interval);
+                        })
+                    
+                },
+
+                sendFile(){
+                    this.capLoading = true;
+                    this.streamIndeterminate = true
+
+                    var formData = new FormData();
+                    var videoFile = document.querySelector('#file');
+                    formData.append("file", videoFile.files[0]);
+                    console.log("oi");
+                    axios.post('/upload', formData, {
+                        headers: {
+                        'Content-Type': 'multipart/form-data'
+                        }
+                        }).then(response => {
+                            this.capLoading = false;
+                            this.inputDialog = false;
+                            this.parse();
                         })
                     
                 },
