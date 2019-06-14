@@ -11,7 +11,7 @@ import numpy as np
 import tensorflow as tf
 
 from utils import visualization_utils as vis_util
-size_ratio = 1.0
+size_ratio = 1.3
 
 
 def targeted_object_counting(input_video, detection_graph, category_index, is_color_recognition_enabled, targeted_object, fps, width, height):
