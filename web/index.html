@@ -397,7 +397,7 @@
                         this.capProgress += 5;
                     }, 250) //TODO: change to fit duration*50
 
-                    var source = new EventSource('/cap?ip=' + this.streamIp + ":8080");
+                    var source = new EventSource('/cap?ip=' + this.streamIp + ":8080" + "&timestamp=" + new Date().getTime());
                     source.onmessage = function (event) {
                         if (event.data == 100) {
                             me.capLoading = false;
