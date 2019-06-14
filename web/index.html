@@ -176,12 +176,12 @@
                                             <v-flex align-center xs12>
                                                 <v-text-field label="IP" v-model="streamIp"></v-text-field>
                                             </v-flex>
-                                            <v-flex align-center xs12>
+                                            <!-- <v-flex align-center xs12>
                                                 <v-text-field label="Frames por segundo" mask="###"></v-text-field>
                                             </v-flex>
                                             <v-flex align-center xs12>
                                                 <v-text-field label="Duração" mask="###s"></v-text-field>
-                                            </v-flex>
+                                            </v-flex> -->
                                         </v-container>
 
                                         <v-card-actions>
@@ -384,6 +384,7 @@
                 },
                 
                 startCapture(){
+                    var me = this;
                     this.capLoading = true;
                     this.streamIndeterminate = false;
                     this.capProgress = 0;
@@ -394,36 +395,41 @@
                             clearInterval(interval);
                         }
                         this.capProgress += 5;
-                    }, 250)
+                    }, 250) //TODO: change to fit duration*50
 
-                    axios
-                        .get('/cap?ip='+this.streamIp+":8080")
-                        .then(response => {
-                            this.capLoading = false;
-                            this.streamDialog = false;
-                            this.parse();
+                    var source = new EventSource('/cap?ip=' + this.streamIp + ":8080");
+                    source.onmessage = function (event) {
+                        if (event.data == 100) {
+                            me.capLoading = false;
+                            me.streamDialog = false;
+                            me.parse();
                             clearInterval(interval);
-                        })
+                        }
+                    }
                     
                 },
 
                 sendFile(){
                     this.capLoading = true;
-                    this.streamIndeterminate = true
+                    this.streamIndeterminate = false;
+                    this.capProgress = 0
 
                     var formData = new FormData();
                     var videoFile = document.querySelector('#file');
                     formData.append("file", videoFile.files[0]);
-                    console.log("oi");
                     axios.post('/upload', formData, {
-                        headers: {
-                        'Content-Type': 'multipart/form-data'
+                        headers: { 'Content-Type': 'multipart/form-data' },
+                        onUploadProgress: progressEvent => {
+                            this.capProgress = (progressEvent.loaded / progressEvent.total) * 100
+                            if (this.capProgress >= 100) {
+                                this.streamIndeterminate = true;
+                            }
                         }
-                        }).then(response => {
-                            this.capLoading = false;
-                            this.inputDialog = false;
-                            this.parse();
-                        })
+                    }).then(response => {
+                        this.capLoading = false;
+                        this.inputDialog = false;
+                        this.parse();
+                    })
                     
                 },
 
@@ -444,13 +450,10 @@
                         header: true,
                         dynamicTyping: true,
                         complete: function (results) {
-                            console.log("Finished:", results.data);
                             vm.quantity = results.data.length;
                             var maxFish = Math.max.apply(Math, results.data.map(function (o) {
                                 return o.x * o.y;
                             }));
-
-                            console.log(vm.sizeSplit, vm.smThreshold, vm.mdThreshold);
 
                             var smThreshold = (vm.sizeSplit == 'custom') ? vm.smThreshold / 100 : null || maxFish / 3;
                             var mdThreshold = (vm.sizeSplit == 'custom') ? vm.mdThreshold / 100 : null || 2 * maxFish / 3;
