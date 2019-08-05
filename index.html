@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
+    <link href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" rel="stylesheet">
+    <link rel="icon" href="assets/kraken.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <meta name="theme-color" content="#2196f3">
+    <link rel="manifest" href="assets/manifest.json" />
+    <title>Kraken</title>
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-toolbar dark color="blue" fixed app>
+                <v-toolbar-title class="white--text">Kraken</v-toolbar-title>
+            
+                <v-spacer></v-spacer>
+                <v-tooltip bottom>
+                    <template v-slot:activator="{ on }">
+                        <v-btn class="mx-3" dark icon v-on="on" v-on:click="parse">
+                            <v-icon>refresh</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Recarregar</span>
+                </v-tooltip>
+                <v-tooltip bottom>
+                    <template v-slot:activator="{ on }">
+                        <v-btn class="mx-3" dark icon v-on="on" @click.stop="settingsDialog = true">
+                            <v-icon>settings</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Configurações</span>
+                </v-tooltip>
+            
+                <div class="text-xs-center">
+                    <v-dialog v-model="settingsDialog" width="500">
+                        <v-card>
+                            <v-card-title class="headline grey lighten-2" primary-title>
+                                Configurações
+                            </v-card-title>
+            
+                            <v-container align-center>
+                                <v-form ref="form" v-model="settingsValid" lazy-validation>
+                                    <v-radio-group v-model="sizeSplit">
+                                        <template v-slot:label>
+                                            <div>Distribuição de tamanho</div>
+                                        </template>
+                                        <v-radio value="custom">
+                                            <template v-slot:label>
+                                                <div>Tamanho Fixo</div>
+                                            </template>
+                                        </v-radio>
+                                        <v-expand-transition>
+                                            <v-flex shrink v-show="sizeSplit=='custom'">
+                                                <v-container grid-list-xl>
+                                                    <v-layout row>
+                                                        <v-flex xs6>
+                                                            <v-text-field v-model="smThreshold" label="Médio" suffix="cm²"
+                                                                hint="Tamanho mínimo de um peixe médio"
+                                                                :rules="[v => (!!v || sizeSplit=='default') || 'Não pode estar vazio']">
+                                                            </v-text-field>
+                                                        </v-flex>
+                                                        <v-flex xs6>
+                                                            <v-text-field v-model="mdThreshold" label="Grande" suffix="cm²"
+                                                                hint="Tamanho mínimo de um peixe grande"
+                                                                :rules="[v => !!v || sizeSplit=='default' || 'Não pode estar vazio',
+                                                                                         v => Number(v) > Number(smThreshold) || sizeSplit=='default' || 'Deve ser maior que o médio']">
+                                                            </v-text-field>
+                                                        </v-flex>
+                                                    </v-layout>
+                                                </v-container>
+                                            </v-flex>
+                                        </v-expand-transition>
+                                        <v-radio value="default">
+                                            <template v-slot:label>
+                                                <div>Quartis</div>
+                                            </template>
+                                        </v-radio>
+                                    </v-radio-group>
+                                </v-form>
+                            </v-container>
+            
+                            <v-divider></v-divider>
+            
+                            <v-card-actions>
+                                <v-spacer></v-spacer>
+                                <v-btn color="primary" flat @click="settingsDialog = false">
+                                    Cancelar
+                                </v-btn>
+                                <v-btn color="primary" flat @click="saveSettings">
+                                    Salvar
+                                </v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-dialog>
+                </div>
+            </v-toolbar>
+            <v-content>
+                <v-container grid-list-lg>
+                    <v-layout wrap>
+                        <v-flex xs12 sm4>
+                            <v-card>
+                                <!-- <v-img src="https://cdn.vuetifyjs.com/images/cards/desert.jpg" aspect-ratio="2.75"> -->
+                                </v-img>
+
+                                <v-card-title primary-title>
+                                    <div>
+                                        <h3 class="headline mb-0">Quantidade Total</h3>
+                                        <div> {{ quantity }} </div>
+                                    </div>
+                                </v-card-title>
+
+                            </v-card>
+                        </v-flex>
+                        <v-flex xs12 sm4>
+                            <v-card>
+                                <!-- <v-img src="assets/fish.jpg"> -->
+                                </v-img>
+
+                                <v-card-title primary-title>
+                                    <div>
+                                        <h3 class="headline mb-0">Tamanho médio</h3>
+                                        <div> {{ size }} </div>
+                                    </div>
+                                </v-card-title>
+
+                            </v-card>
+                        </v-flex>
+                        <v-flex xs12 sm4>
+                            <v-card>
+                                <v-card-title primary-title>
+                                    <div>
+                                        <h3 class="headline mb-0">Acurácia média</h3>
+                                        <div> {{ accuracy }} </div>
+                                    </div>
+                                </v-card-title>
+
+                            </v-card>
+                        </v-flex>
+                        <v-flex xs12>
+                            <v-card>
+                                <v-card-title primary-title>
+                                    <h3 class="headline mb-0">Distribuição de peixes por tamanho</h3>
+                                </v-card-title>
+                                <div id="chart">
+                                    <apexchart type=bar height=350 :options="chartOptions" :series="series" />
+                                </div>
+                            </v-card>
+                        </v-flex>
+                    </v-layout>
+                    <v-speed-dial v-model="fab" fixed right bottom direction="top" open-on-hover
+                        transition="scale-transition" style="bottom: 65px">
+                        <template v-slot:activator>
+                            <v-btn v-model="fab" color="indigo" dark fab>
+                                <v-icon>add</v-icon>
+                                <v-icon>close</v-icon>
+                            </v-btn>
+                        </template>
+                        <v-btn fab dark small color="teal" v-on="on" @click.stop="streamDialog = true">
+                            <v-icon>videocam</v-icon>
+                        </v-btn>
+                        <v-btn fab dark small color="blue" v-on="on" @click.stop="inputDialog = true">
+                            <v-icon>attach_file</v-icon>
+                        </v-btn>
+                    </v-speed-dial>
+                    <template>
+                        <v-layout row justify-center>
+                            <v-dialog v-model="streamDialog" max-width="290" :persistent="capLoading">
+                                <v-expand-transition>
+                                    <v-card v-show="!capLoading">
+                                        <v-card-title class="headline">Opções da Stream</v-card-title>
+                                        <v-container>
+                                            <v-flex align-center xs12>
+                                                <v-text-field label="IP" v-model="streamIp"></v-text-field>
+                                            </v-flex>
+                                            <!-- <v-flex align-center xs12>
+                                                <v-text-field label="Frames por segundo" mask="###"></v-text-field>
+                                            </v-flex>
+                                            <v-flex align-center xs12>
+                                                <v-text-field label="Duração" mask="###s"></v-text-field>
+                                            </v-flex> -->
+                                        </v-container>
+
+                                        <v-card-actions>
+                                            <v-spacer></v-spacer>
+                                            <v-btn color="blue darken-1" flat @click="streamDialog = false">Cancelar</v-btn>
+                                            <v-btn color="blue darken-1" flat @click="startCapture">Iniciar</v-btn>
+                                        </v-card-actions>
+                                    </v-card>
+                                </v-expand-transition>
+                                <v-expand-transition>
+                                    <v-card v-show="capLoading">
+                                        <v-container>
+                                            <v-layout wrap>
+                                                <v-flex text-xs-center xs12>
+                                                    <v-progress-circular mb-4
+                                                        :indeterminate="streamIndeterminate"
+                                                        :value="capProgress"
+                                                        color="blue darken-1">
+                                                    </v-progress-circular>
+                                                    
+                                                </v-flex>
+                                                <v-flex v-show="streamIndeterminate" text-xs-center xs12>
+                                                    Processando Vídeo
+                                                </v-flex>
+                                                <v-flex v-show="!streamIndeterminate" text-xs-center xs12>
+                                                    Capturando Vídeo
+                                                </v-flex>
+                                            </v-layout>
+                                        </v-container>
+                                    </v-card>
+                                </v-expand-transition>
+                            </v-dialog>
+                        </v-layout>
+                    </template>
+                    <template>
+                        <v-layout row justify-center>
+                            <v-dialog v-model="inputDialog" max-width="290" :persistent="capLoading">
+                                <v-expand-transition>
+                                    <v-card v-show="!capLoading">
+                                        <v-card-title class="headline">Opções da Stream</v-card-title>
+                                        <v-container>
+                                            <v-flex align-center xs12>
+                                                <form id="sendFile" action="/upload" method="POST" 
+                                                enctype="multipart/form-data">
+                                                    <input id="file" type="file" name="file" />
+                                                </form>
+                                            </v-flex>
+                                        </v-container>
+
+                                        <v-card-actions>
+                                            <v-spacer></v-spacer>
+                                            <v-btn color="blue darken-1" flat @click="inputDialog = false">Cancelar</v-btn>
+                                            <v-btn color="blue darken-1" flat @click="sendFile">Enviar</v-btn>
+                                        </v-card-actions>
+                                    </v-card>
+                                </v-expand-transition>
+                                <v-expand-transition>
+                                    <v-card v-show="capLoading">
+                                        <v-container>
+                                            <v-layout wrap>
+                                                <v-flex text-xs-center xs12>
+                                                    <v-progress-circular mb-4
+                                                        :indeterminate="streamIndeterminate"
+                                                        :value="capProgress"
+                                                        color="blue darken-1">
+                                                    </v-progress-circular>
+                                                    
+                                                </v-flex>
+                                                <v-flex v-show="!streamIndeterminate" text-xs-center xs12>
+                                                    Enviando Vídeo
+                                                </v-flex>
+                                            </v-layout>
+                                        </v-container>
+                                    </v-card>
+                                </v-expand-transition>
+                            </v-dialog>
+                        </v-layout>
+                    </template>
+                </v-container>
+            </v-content>
+            <v-footer dark height="auto">
+                <v-card class="flex" flat tile>
+                    <v-card-actions class="grey darken-3 justify-center">
+                        <v-layout align-center>
+                            <v-flex xs4 text-xs-center offset-xs4>
+                                &copy;2019&nbsp;—&nbsp;<strong>Daniel Gohl</strong>
+                            </v-flex>
+                            <v-flex xs4 text-xs-right>
+                                <v-tooltip top>
+                                    <template v-slot:activator="{ on }">
+                                        <v-btn class="mx-3" dark icon v-on="on"
+                                            v-on:click="open_url('https://www.github.com/danielgohl13/kraken')">
+                                            <v-icon size="24px">fab fa-github</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Open on Github</span>
+                                </v-tooltip>
+                            </v-flex>
+                        </v-layout>
+                    </v-card-actions>
+                </v-card>
+
+            </v-footer>
+
+        </v-app>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.6.3/papaparse.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-upload-component"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-apexcharts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
+    <script src="assets/app.js"></script>
+    
+</body>
+
+</html>
