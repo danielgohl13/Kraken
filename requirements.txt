@@ -5,5 +5,5 @@ six==1.12.0
 matplotlib==2.2.2
 Pillow==6.0.0
 protobuf==3.7.1
-tensorflow==1.13.1
+tensorflow==1.15.0
 Flask==1.0.3
