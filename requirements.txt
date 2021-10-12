@@ -1,6 +1,6 @@
 scipy==1.1.0
 numpy==1.14.5
-opencv_python==4.0.0.21
+opencv_python==4.2.0.32
 six==1.12.0
 matplotlib==2.2.2
 Pillow==6.0.0
